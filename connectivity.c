@@ -48,7 +48,7 @@ void print_graph(Node**graph, int n){
 }
 
 void BFS(Node **graph, int n, int s, int t, int *parents){
-	int visited[n+1];
+	int visited[n+1]; /*Estão a chatear aqui.. se calhar temos de usar malloc*/
 	int i;
 	Node *L = NULL;
 	Node *last = NULL;
@@ -121,7 +121,7 @@ int disjoint_paths(Node **graph,int n, int s, int t){
 int main(int argc, char *argv[]){
 	FILE *fp;
 	char buff[128];
-	int n, i, head, tail;
+	int n, i, head, tail, option, source, dest;
 	Node **network, **res_net;
 	
 
@@ -156,7 +156,43 @@ int main(int argc, char *argv[]){
 	for(i = 0; i<= 6; i++)
 		printf("%d tem pai %d\n",i,parents[i]);*/
 
-	printf("Number of Link disjoint paths = %d\n",disjoint_paths(res_net,n,1,6));
+	/*printf("Number of Link disjoint paths = %d\n",disjoint_paths(res_net,n,1,6));*/
+
+	while(1){
+		printf("[1] Compute the minimum number of links that separates a source node from a destination node\n");
+		printf("[2] Compute the complementary cumulative distribution of the minimum number of links that separates one node from another\n");
+		printf("[3] Compute the link-connectivity of this network\n");
+		printf("[4] Quit\n");
+		printf("Choose an option: ");
+		scanf("%d", &option);
+
+		if(option == 1){
+			printf("\nChoose a source node:");
+			scanf("%d", &source);
+			if(source > n || source < 1) printf("\nInvalid source node!\n");
+
+			else{
+				printf("\nChoose a destination node:");
+				scanf("%d", &dest);
+				if(dest > n || dest < 1) printf("\nInvalid destination node!\n");
+
+				else printf("\nNumber of Link disjoint paths from source node %d to destination node %d = %d\n\n", source, dest, disjoint_paths(res_net,n,1,6));
+			}
+			
+
+		}
+		else if(option == 2){
+
+		}
+		else if(option == 3){
+
+
+		}
+		else if(option == 4) break;
+		else printf("Invalid option!\n");
+
+			
+	}
 	
 
 	
