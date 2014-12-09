@@ -145,10 +145,10 @@ int disjoint_paths(Node **graph,int n, int s, int t){
 		for(i = 0; i < n+1 ; i++)
 		parents[i] = -1;
 		BFS(graph,n,s,t,parents);
-		printf("\n");
-		/*print_graph(graph, n);*/
+
 	}
 
+	free(parents);
 	return count;
 }
 
@@ -264,6 +264,78 @@ void print_k_counts(K * k_lists){
 	return;
 }
 
+void print_important_links(K* k_lists, Node** network, int n){
+	int i,s,t;
+	Node **res_net, *aux;
+	int *parents, *set;
+
+	if(k_lists->k == 0){
+		printf("\nThis network is 0-link-strong!\n");
+		return;
+	}
+
+	/* Retira primeiro par das k_lists */
+	s = k_lists->nodes->s;
+	t = k_lists->nodes->t;
+
+	/* Corre disjoint_paths para s,t */
+	res_net = copy_graph(network,n);
+
+	disjoint_paths(res_net,n,s,t);
+
+	parents = (int*) malloc((n+1)*sizeof(int));
+	for(i = 0; i < n+1 ; i++)
+		parents[i] = -1;
+	set 	= (int*) malloc((n+1)*sizeof(int));
+
+	BFS(res_net, n, s, t, parents);
+
+	/* Criar conjuntos S e T */
+
+	for(i = 1 ; i <= n ; i++){
+		if(parents[i] != -1 || i == s)
+			set[i] = 1;
+		else
+			set[i] = 0;
+	}
+
+	/* */
+	printf("\nThis network is %d-link-strong!\n", k_lists->k);
+	printf("The network becomes 0-link-strong if the following links are removed: ");
+
+	for(i = 1 ; i <= n ; i++)
+		if(set[i] ==  1)/* i pertence a S */
+			for(aux = network[i]; aux != NULL ; aux = aux->next)
+				if(set[aux->num] == 0) /* Pertence ao T */
+					printf("(%d,%d) ",i,aux->num);
+	printf("\n\n"); 
+
+	free(parents);
+	free(set);
+
+	delete_graph(res_net,n);
+
+	return;
+}
+
+void delete_k_lists(K ** k_lists){
+
+	K * aux_k;
+	Pair * aux_p;
+
+	for(aux_k = *k_lists; aux_k != NULL; aux_k = aux_k->next){
+		for(aux_p = aux_k->nodes; aux_p != NULL; aux_p = aux_p->next){
+			aux_k->nodes = aux_p->next;
+			free(aux_p);
+		}
+		(*k_lists) = aux_k->next;
+		free(aux_k);
+	}
+
+	return;
+
+}
+
 int main(int argc, char *argv[]){
 	FILE *fp;
 	char buff[128];
@@ -291,8 +363,6 @@ int main(int argc, char *argv[]){
 	  sscanf(buff,"%d %d",&head,&tail);
 	  new_link(head, tail, network);
 	}
-
-	print_graph(network, n);
 
 	while(1){
 		printf("[1] Compute the minimum number of links that separates a source node from a destination node\n");
@@ -326,11 +396,8 @@ int main(int argc, char *argv[]){
 					if(i != j){
 						res_net = copy_graph(network,n);
 						k = disjoint_paths(res_net,n,i,j);
-						printf("from s = %d to t = %d, k = %d\n", i, j, k);
 						add_pair(&k_lists, i, j, k);
 						delete_graph(res_net,n);
-						print_k_lists(k_lists);
-						printf("\n\n");
 					}
 				}
 			}
@@ -338,10 +405,25 @@ int main(int argc, char *argv[]){
 			print_k_counts(k_lists);
 		}
 		else if(option == 3){
-
-
+			if(k_lists == NULL){
+				for(i = 1; i <= n; i++){
+					for(j = 1; j <= n; j++){
+						if(i != j){
+							res_net = copy_graph(network,n);
+							k = disjoint_paths(res_net,n,i,j);
+							add_pair(&k_lists, i, j, k);
+							delete_graph(res_net,n);
+						}
+					}
+				}
+			}
+			print_important_links(k_lists, network, n);
 		}
-		else if(option == 4) break;
+		else if(option == 4){
+			delete_graph(network,n);
+			delete_k_lists(&k_lists);
+			break;
+		}
 		else printf("Invalid option!\n");
 
 			
